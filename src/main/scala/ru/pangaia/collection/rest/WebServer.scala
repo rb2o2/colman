@@ -44,7 +44,7 @@ object WebServer {
 
 
   // (fake) async database query api
-  def fetchItem(/*itemId: Long*/): Future[Option[CatalogCard]] = Future {Some(ACard.card)}
+  def fetchItem: Future[Option[CatalogCard]] = Future {Some(ACard.card)}
   //  def saveOrder(order: Order): Future[Done] = ???
 
   def main(args: Array[String]) = {
@@ -57,28 +57,14 @@ object WebServer {
 
     val route: Route =
       get {
-        //        pathPrefix("" / LongNumber / LongNumber) { (id1,id2) =>
-
-        // there might be no item for a given id
-        //          println(s"${id1}, ${id2}")
-        val maybeItem: Future[Option[CatalogCard]] = fetchItem()
+        val maybeItem: Future[Option[CatalogCard]] = fetchItem
 
         onSuccess(maybeItem) {
           case Some(item) => complete(item)
           case None       => complete(StatusCodes.NotFound)
         }
 
-      } /*~
-        post {
-          path("create-order") {
-            entity(as[Order]) { order =>
-              val saved: Future[Done] = saveOrder(order)
-              onComplete(saved) { done =>
-                complete("order created")
-              }
-            }
-          }
-        }*/
+      }
 
     val bindingFuture = Http().bindAndHandle(route, "localhost", 8080)
     println(s"Server online at http://localhost:8080/\nPress RETURN to stop...")
@@ -86,6 +72,5 @@ object WebServer {
     bindingFuture
       .flatMap(_.unbind()) // trigger unbinding from the port
       .onComplete(_ ⇒ system.terminate()) // and shutdown when done
-
   }
 }

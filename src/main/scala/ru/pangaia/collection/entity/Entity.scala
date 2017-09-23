@@ -13,37 +13,30 @@ trait Entity
 }
 trait User extends Entity
 
-
-//trait Collectible extends Named //with Entity
-//{
-//  val fields: Seq[CardField]
-//}
-
-case class Collectible(override val name: String,
-                       override val description: String = "generic collection",
-                       fields: Seq[CardField]) extends Named
-
 trait Named
 {
   val name: String
   val description: String
 }
+case class Collectible(override val name: String,
+                       override val description: String = "generic collection",
+                       fields: Seq[CardField]) extends Named
+
 
 sealed trait CardField extends Named// with Entity
 {
   def validate(s: String): Boolean
-  def writeToRecord(r: Record, s: String): Unit
+  def writeToRecord(r: Record, s: String): Unit =
+  {
+    if (r.field == this && validate(s)) r.value = s
+  }
   def default: String
 }
+
 case class StringField(override val name: String,
                        override val description: String) extends CardField
 {
   override def validate(s: String): Boolean = true
-
-  override def writeToRecord(r: Record, s: String): Unit =
-  {
-    if (r.field == this && validate(s)) r.value = s
-  }
 
   override def default: String = "--"
 }
@@ -51,14 +44,6 @@ case class IntField(override val name: String,
                     override val description: String) extends CardField
 {
   override def validate(s: String): Boolean = s.matches("\\d+")
-
-  override def writeToRecord(r: Record, s: String): Unit =
-  {
-    if (r.field == this && validate(s))
-    {
-      r.value = s
-    }
-  }
 
   override def default: String = "0"
 }
@@ -68,31 +53,13 @@ case class ChoiceField(override val name: String,
 {
   override def validate(s: String): Boolean = possibleChoices.contains(s)
 
-  override def writeToRecord(r: Record, s: String): Unit =
-  {
-    if (r.field == this && validate(s)) r.value = s
-  }
-
   override def default: String = possibleChoices.head
 }
 
-//trait Record //extends Entity
-//{
-//  val field: CardField
-//  var value: String
-//}
-case class Record(field: CardField, var value: String) //extends Record
+case class Record(field: CardField, var value: String)
 
-//trait CatalogCard //extends Entity
-//{
-//  val coll: Collectible
-//  def getFields: Seq[CardField] = coll.fields
-//  val records: Seq[Record]
-//}
-case class CatalogCard(coll: Collectible, var records: List[Record]) //extends CatalogCard
+case class CatalogCard(coll: Collectible, var records: List[Record])
 {
-//  override def getRecords: Seq[Record] = records
-
   records = coll.fields.map((fld: CardField) => Record(fld, fld.default)).toList
 
   override def toString: String = records.map((r: Record)=>
