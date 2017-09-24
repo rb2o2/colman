@@ -22,10 +22,10 @@ object WebServer {
   implicit val categoryFormat: RootJsonFormat[Cat] = new RootJsonFormat[Cat]
   {
     override def write(obj: Cat): JsValue = JsObject(Map(
-        "id" -> JsString(obj.id.toString),
-        "createdOn" -> JsString(obj.createdOn.getTime.toString),
-        "name" -> JsString(obj.name),
-        "description" -> JsString(obj.description)))
+      "id" -> LongJsonFormat.write(obj.id),
+      "createdOn" -> LongJsonFormat.write(obj.createdOn.getTime),
+      "name" -> JsString(obj.name),
+      "description" -> JsString(obj.description)))
 
     override def read(json: JsValue): Cat = ???
   }
@@ -36,9 +36,7 @@ object WebServer {
 
       JsObject(Map(
         "index" -> JsString(obj.index),
-        "value" -> JsObject(Map(
-          "name" -> JsString(obj.value.name),
-          "description" -> JsString(obj.value.description))),
+        "value" -> categoryFormat.write(obj.value),
         "children" ->
           {
             if (obj.children.isEmpty) JsArray()
@@ -57,33 +55,33 @@ object WebServer {
       case i:IntField=> JsObject(Map(
         "name" -> JsString(i.name),
         "description" -> JsString(i.description),
-        "id" -> JsString(i.id.toString),
-        "createdOn" -> JsString(i.createdOn.getTime.toString)))
+        "id" -> LongJsonFormat.write(obj.id),
+        "createdOn" -> LongJsonFormat.write(obj.createdOn.getTime)))
       case i:StringField => JsObject(Map(
         "name" -> JsString(i.name),
         "description" -> JsString(i.description),
-        "id" -> JsString(i.id.toString),
-        "createdOn" -> JsString(i.createdOn.getTime.toString)))
+        "id" -> LongJsonFormat.write(obj.id),
+        "createdOn" -> LongJsonFormat.write(obj.createdOn.getTime)))
       case i:ChoiceField => JsObject(Map(
         "name" -> JsString(i.name),
         "description" -> JsString(i.description),
         "possibleValues" -> JsArray(i.possibleChoices.map((s:String) => JsString(s)).toVector),
-        "id" -> JsString(i.id.toString),
-        "createdOn" -> JsString(i.createdOn.getTime.toString)))
+        "id" -> LongJsonFormat.write(obj.id),
+        "createdOn" -> LongJsonFormat.write(obj.createdOn.getTime)))
       case t:TaxonField => JsObject(Map(
         "name" -> JsString(t.name),
         "description" -> JsString(t.description),
         "root" -> treeFormat.write(t.root),
-        "id" -> JsString(t.id.toString),
-        "createdOn" -> JsString(t.createdOn.getTime.toString)))
+        "id" -> LongJsonFormat.write(obj.id),
+        "createdOn" -> LongJsonFormat.write(obj.createdOn.getTime)))
       case _ => JsArray()
     }
   }
   implicit val recordFormat: RootJsonFormat[Record] = new RootJsonFormat[Record]
   {
     override def write(obj: Record): JsValue = JsObject(Map(
-      "id" -> JsString(obj.id.toString),
-      "createdOn" -> JsString(obj.createdOn.getTime.toString),
+      "id" -> LongJsonFormat.write(obj.id),
+      "createdOn" -> LongJsonFormat.write(obj.createdOn.getTime),
       "field" -> fieldFormat.write(obj.field),
       "value" -> JsString(obj.value)))
 
@@ -92,8 +90,8 @@ object WebServer {
   implicit val collectibleFormat: RootJsonFormat[Collectible] = new RootJsonFormat[Collectible]
   {
     override def write(obj: Collectible): JsValue = JsObject(Map(
-      "id" -> JsString(obj.id.toString),
-      "createdOn" -> JsString(obj.createdOn.getTime.toString),
+      "id" -> LongJsonFormat.write(obj.id),
+      "createdOn" -> LongJsonFormat.write(obj.createdOn.getTime),
       "fields" -> JsArray(obj.fields.map(fieldFormat.write).toVector),
       "name" -> JsString(obj.name),
       "description" -> JsString(obj.description)))
@@ -103,8 +101,8 @@ object WebServer {
   implicit val cardFormat: RootJsonFormat[CatalogCard] = new RootJsonFormat[CatalogCard]
   {
     override def write(obj: CatalogCard): JsValue = JsObject(Map(
-      "id" -> JsString(obj.id.toString),
-      "createdOn" -> JsString(obj.createdOn.getTime.toString),
+      "id" -> LongJsonFormat.write(obj.id),
+      "createdOn" -> LongJsonFormat.write(obj.createdOn.getTime),
       "records" -> JsArray(obj.records.map(recordFormat.write).toVector),
       "coll" -> collectibleFormat.write(obj.coll)))
 

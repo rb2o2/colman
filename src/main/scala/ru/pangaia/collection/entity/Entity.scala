@@ -16,7 +16,12 @@ object Entity
 {
   var id_counter:Long = 0L
 
-  def getAndInc:Long = {var c = 0 + id_counter; id_counter += 1; c}
+  def getAndInc:Long =
+  {
+    var c = 0 + id_counter
+    id_counter += 1
+    c
+  }
 }
 trait User extends Entity
 
