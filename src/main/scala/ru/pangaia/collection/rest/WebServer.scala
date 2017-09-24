@@ -13,12 +13,40 @@ import spray.json.DefaultJsonProtocol._
 import spray.json.{DefaultJsonProtocol, JsArray, JsObject, JsString, JsValue, RootJsonFormat}
 
 import scala.io.StdIn
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object WebServer {
 
   // formats for unmarshalling and marshalling
+  implicit val categoryFormat: RootJsonFormat[Cat] = new RootJsonFormat[Cat]
+  {
+    override def write(obj: Cat): JsValue = JsObject(Map(
+        "id" -> JsString(obj.id.toString),
+        "createdOn" -> JsString(obj.createdOn.getTime.toString),
+        "name" -> JsString(obj.name),
+        "description" -> JsString(obj.description)))
+
+    override def read(json: JsValue): Cat = ???
+  }
+
+  implicit val treeFormat: RootJsonFormat[CategoryNode] = new RootJsonFormat[CategoryNode]
+  {
+    override def write(obj: CategoryNode): JsValue =
+
+      JsObject(Map(
+        "index" -> JsString(obj.index),
+        "value" -> JsObject(Map(
+          "name" -> JsString(obj.value.name),
+          "description" -> JsString(obj.value.description))),
+        "children" ->
+          {
+            if (obj.children.isEmpty) JsArray()
+            else JsArray(obj.children.map(write).toVector)
+          }))
+
+    override def read(json: JsValue): CategoryNode = ???
+  }
 
   implicit object fieldFormat extends RootJsonFormat[CardField]
   {
@@ -26,34 +54,75 @@ object WebServer {
 
     override def write(obj: CardField): JsValue = obj match
     {
-      case IntField(name, description) => JsObject(Map(
-        "name" -> JsString(name),
-        "description" -> JsString(description)))
-      case StringField(name, description) => JsObject(Map(
-        "name" -> JsString(name),
-        "description" -> JsString(description)))
-      case ChoiceField(name, description, possibleChoices) => JsObject(Map(
-        "name" -> JsString(name),
-        "description" -> JsString(description),
-        "possibleValues" -> JsArray(possibleChoices.map((s:String) => JsString(s)).toVector)))
+      case i:IntField=> JsObject(Map(
+        "name" -> JsString(i.name),
+        "description" -> JsString(i.description),
+        "id" -> JsString(i.id.toString),
+        "createdOn" -> JsString(i.createdOn.getTime.toString)))
+      case i:StringField => JsObject(Map(
+        "name" -> JsString(i.name),
+        "description" -> JsString(i.description),
+        "id" -> JsString(i.id.toString),
+        "createdOn" -> JsString(i.createdOn.getTime.toString)))
+      case i:ChoiceField => JsObject(Map(
+        "name" -> JsString(i.name),
+        "description" -> JsString(i.description),
+        "possibleValues" -> JsArray(i.possibleChoices.map((s:String) => JsString(s)).toVector),
+        "id" -> JsString(i.id.toString),
+        "createdOn" -> JsString(i.createdOn.getTime.toString)))
+      case t:TaxonField => JsObject(Map(
+        "name" -> JsString(t.name),
+        "description" -> JsString(t.description),
+        "root" -> treeFormat.write(t.root),
+        "id" -> JsString(t.id.toString),
+        "createdOn" -> JsString(t.createdOn.getTime.toString)))
+      case _ => JsArray()
     }
   }
-  implicit val recordFormat: RootJsonFormat[Record] = jsonFormat2(Record)
-  implicit val collectibleFormat: RootJsonFormat[Collectible] = jsonFormat3(Collectible)
-  implicit val cardFormat: RootJsonFormat[CatalogCard] = jsonFormat2(CatalogCard)
+  implicit val recordFormat: RootJsonFormat[Record] = new RootJsonFormat[Record]
+  {
+    override def write(obj: Record): JsValue = JsObject(Map(
+      "id" -> JsString(obj.id.toString),
+      "createdOn" -> JsString(obj.createdOn.getTime.toString),
+      "field" -> fieldFormat.write(obj.field),
+      "value" -> JsString(obj.value)))
+
+    override def read(json: JsValue): Record = ???
+  }
+  implicit val collectibleFormat: RootJsonFormat[Collectible] = new RootJsonFormat[Collectible]
+  {
+    override def write(obj: Collectible): JsValue = JsObject(Map(
+      "id" -> JsString(obj.id.toString),
+      "createdOn" -> JsString(obj.createdOn.getTime.toString),
+      "fields" -> JsArray(obj.fields.map(fieldFormat.write).toVector),
+      "name" -> JsString(obj.name),
+      "description" -> JsString(obj.description)))
+
+    override def read(json: JsValue): Collectible = ???
+  }
+  implicit val cardFormat: RootJsonFormat[CatalogCard] = new RootJsonFormat[CatalogCard]
+  {
+    override def write(obj: CatalogCard): JsValue = JsObject(Map(
+      "id" -> JsString(obj.id.toString),
+      "createdOn" -> JsString(obj.createdOn.getTime.toString),
+      "records" -> JsArray(obj.records.map(recordFormat.write).toVector),
+      "coll" -> collectibleFormat.write(obj.coll)))
+
+    override def read(json: JsValue): CatalogCard = ???
+  }
 
 
   // (fake) async database query api
   def fetchItem: Future[Option[CatalogCard]] = Future {Some(ACard.card)}
   //  def saveOrder(order: Order): Future[Done] = ???
 
-  def main(args: Array[String]) = {
+  def main(args: Array[String]): Unit = {
 
     // needed to run the route
-    implicit val system = ActorSystem()
-    implicit val materializer = ActorMaterializer()
+    implicit val system: ActorSystem = ActorSystem()
+    implicit val materializer: ActorMaterializer = ActorMaterializer()
     // needed for the future map/flatmap in the end
-    implicit val executionContext = system.dispatcher
+    implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 
     val route: Route =
       get {
@@ -63,7 +132,6 @@ object WebServer {
           case Some(item) => complete(item)
           case None       => complete(StatusCodes.NotFound)
         }
-
       }
 
     val bindingFuture = Http().bindAndHandle(route, "localhost", 8080)

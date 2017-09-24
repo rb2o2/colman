@@ -1,15 +1,22 @@
 package collection.entity
 
 import java.sql.Timestamp
+import java.time.Instant
 
 
 trait Entity
 {
-  val id: Long
-  val createdOn: Timestamp
-  var modifiedOn: Timestamp
-  val createdBy: User
-  var modifiedBy: User
+  val id: Long = Entity.getAndInc
+  val createdOn: Timestamp = Timestamp.from(Instant.now)
+//  var modifiedOn: Timestamp
+//  val createdBy: User
+//  var modifiedBy: User
+}
+object Entity
+{
+  var id_counter:Long = 0L
+
+  def getAndInc:Long = {var c = 0 + id_counter; id_counter += 1; c}
 }
 trait User extends Entity
 
@@ -20,10 +27,10 @@ trait Named
 }
 case class Collectible(override val name: String,
                        override val description: String = "generic collection",
-                       fields: Seq[CardField]) extends Named
+                       fields: Seq[CardField]) extends Named with Entity
 
 
-sealed trait CardField extends Named// with Entity
+sealed trait CardField extends Named with Entity
 {
   def validate(s: String): Boolean
   def writeToRecord(r: Record, s: String): Unit =
@@ -56,9 +63,36 @@ case class ChoiceField(override val name: String,
   override def default: String = possibleChoices.head
 }
 
-case class Record(field: CardField, var value: String)
+//class Node[A,B](index: A, value: B, children: Seq[Node[A,B]] = Seq())
+//{
+//  def containsDeeper(v: A): Boolean =
+//  {
+//    index == v || children.exists(_.containsDeeper(v))
+//  }
+//}
 
-case class CatalogCard(coll: Collectible, var records: List[Record])
+case class CategoryNode(index: String,
+                        value: Cat,
+                        children: Seq[CategoryNode])
+{
+  def containsDeeper(v: String): Boolean =
+  {
+    index == v || children.exists(_.containsDeeper(v))
+  }
+}
+
+case class TaxonField(override val name: String,
+                      override val description: String,
+                      root: CategoryNode) extends CardField with Entity
+{
+  override def validate(s: String): Boolean = root containsDeeper s
+
+  override def default: String = root.index
+}
+
+case class Record(field: CardField, var value: String) extends Entity
+
+case class CatalogCard(coll: Collectible, var records: List[Record]) extends Entity
 {
   records = coll.fields.map((fld: CardField) => Record(fld, fld.default)).toList
 
@@ -67,29 +101,35 @@ case class CatalogCard(coll: Collectible, var records: List[Record])
     r.field.name +": "+  r.value
   }).mkString("; ")
 }
+case class Cat(override val name: String, override val description: String) extends Named with Entity
 
+//Test case-----------
 object ACard
 {
-  def card: CatalogCard =
+  private val _card : CatalogCard =
   {
+    val catTree = CategoryNode("root1", Cat("root", "some category"), List(
+      CategoryNode("man", Cat("man", "a man"), List()),
+      CategoryNode("woman", Cat("woman", "a woman"), List())))
     val flds: Seq[CardField] = List(
       StringField("Title", "title of the book"),
       StringField("Author", "author of the book"),
       IntField("Pages", "number of pages"),
-      ChoiceField("Periodicity", "", List("Book", "Almanac", "Journal", "Paper"))
+      ChoiceField("Periodicity", "", List("Book", "Almanac", "Journal", "Paper")),
+      TaxonField("Author's sex", "Sex of the author", catTree)
     )
     val book: Collectible = Collectible("BOOK",fields = flds)
     val card: CatalogCard = CatalogCard(book, List())
-    card.records.foreach((r:Record) =>
-      r match {
-        case Record(StringField("Title",_), _) => r.field.writeToRecord(r, "LOTR")
-        case Record(StringField("Author",_), _) => r.field.writeToRecord(r, "Tolkien")
-        case Record(ChoiceField("Periodicity",_,_), _) => r.field.writeToRecord(r, "Book")
-        case _ => ()
-      }
-    )
-    println(card)
+    card.records.foreach((r:Record) => r match
+    {
+      case Record(StringField("Title", _), _) => r.field.writeToRecord(r, "LOTR")
+      case Record(StringField("Author", _), _) => r.field.writeToRecord(r, "Tolkien")
+      case Record(ChoiceField("Periodicity", _, _), _) => r.field.writeToRecord(r, "Book")
+      case Record(TaxonField("Author's sex", _, _), _) => r.field.writeToRecord(r, "man")
+      case _ => ()
+    })
     card
   }
+  def card : CatalogCard = {println(_card); _card}
 }
 
