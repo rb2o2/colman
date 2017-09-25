@@ -1,4 +1,4 @@
-package collection.entity
+package ru.pangaia.collection.entity
 
 import java.sql.Timestamp
 import java.time.Instant
@@ -18,7 +18,7 @@ object Entity
 
   def getAndInc:Long =
   {
-    var c = 0 + id_counter
+    val c = 0 + id_counter
     id_counter += 1
     c
   }
@@ -37,27 +37,36 @@ case class Collectible(override val name: String,
 
 sealed trait CardField extends Named with Entity
 {
-  def validate(s: String): Boolean
+  def validate(s: String): Boolean = s.matches(pattern)
   def writeToRecord(r: Record, s: String): Unit =
   {
     if (r.field == this && validate(s)) r.value = s
   }
-  def default: String
+  val default: String
+  var pattern: String
+  def withRegex(re: String): CardField = {pattern = re; this}
 }
 
 case class StringField(override val name: String,
                        override val description: String) extends CardField
 {
-  override def validate(s: String): Boolean = true
+  override val default: String = "--"
 
-  override def default: String = "--"
+  var pattern = ".*"
 }
 case class IntField(override val name: String,
                     override val description: String) extends CardField
 {
-  override def validate(s: String): Boolean = s.matches("\\d+")
+  override val default: String = "0"
 
-  override def default: String = "0"
+  var pattern = "[1-9][0-9]*"
+}
+case class BooleanField(override val name: String,
+                        override val description: String) extends CardField
+{
+  override val default: String = "false"
+
+  override var pattern: String = "true|false"
 }
 case class ChoiceField(override val name: String,
                        override val description: String,
@@ -65,16 +74,10 @@ case class ChoiceField(override val name: String,
 {
   override def validate(s: String): Boolean = possibleChoices.contains(s)
 
-  override def default: String = possibleChoices.head
-}
+  override val default: String = possibleChoices.head
 
-//class Node[A,B](index: A, value: B, children: Seq[Node[A,B]] = Seq())
-//{
-//  def containsDeeper(v: A): Boolean =
-//  {
-//    index == v || children.exists(_.containsDeeper(v))
-//  }
-//}
+  var pattern = ".*"
+}
 
 case class CategoryNode(index: String,
                         value: Cat,
@@ -92,7 +95,9 @@ case class TaxonField(override val name: String,
 {
   override def validate(s: String): Boolean = root containsDeeper s
 
-  override def default: String = root.index
+  override val default: String = root.index
+
+  var pattern: String = ".*"
 }
 
 case class Record(field: CardField, var value: String) extends Entity
@@ -111,7 +116,7 @@ case class Cat(override val name: String, override val description: String) exte
 //Test case-----------
 object ACard
 {
-  private val _card : CatalogCard =
+  val card : CatalogCard =
   {
     val catTree = CategoryNode("root1", Cat("root", "some category"), List(
       CategoryNode("man", Cat("man", "a man"), List()),
@@ -119,7 +124,7 @@ object ACard
     val flds: Seq[CardField] = List(
       StringField("Title", "title of the book"),
       StringField("Author", "author of the book"),
-      IntField("Pages", "number of pages"),
+      IntField("Pages", "number of pages").withRegex("[1-9][0-9]{0,3}"),
       ChoiceField("Periodicity", "", List("Book", "Almanac", "Journal", "Paper")),
       TaxonField("Author's sex", "Sex of the author", catTree)
     )
@@ -133,8 +138,8 @@ object ACard
       case Record(TaxonField("Author's sex", _, _), _) => r.field.writeToRecord(r, "man")
       case _ => ()
     })
+    println(card)
     card
   }
-  def card : CatalogCard = {println(_card); _card}
 }
 
