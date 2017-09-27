@@ -1,6 +1,6 @@
 
-name := "dotty-example-project"
-description := "Example sbt project that compiles using Dotty"
+name := "liblio-akka"
+description := "Personal library/collection management server built on akka-http"
 version := "0.1"
 
 scalaVersion := "2.12.3"
