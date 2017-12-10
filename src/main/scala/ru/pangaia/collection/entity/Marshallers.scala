@@ -43,30 +43,30 @@ object Marshallers
       case i:IntField=> JsObject(Map(
         "name" -> JsString(i.name),
         "description" -> JsString(i.description),
-        "id" -> LongJsonFormat.write(obj.id),
-        "createdOn" -> LongJsonFormat.write(obj.createdOn.getTime)))
+        "id" -> LongJsonFormat.write(i.id),
+        "createdOn" -> LongJsonFormat.write(i.createdOn.getTime)))
       case i:StringField => JsObject(Map(
         "name" -> JsString(i.name),
         "description" -> JsString(i.description),
-        "id" -> LongJsonFormat.write(obj.id),
-        "createdOn" -> LongJsonFormat.write(obj.createdOn.getTime)))
+        "id" -> LongJsonFormat.write(i.id),
+        "createdOn" -> LongJsonFormat.write(i.createdOn.getTime)))
       case i:ChoiceField => JsObject(Map(
         "name" -> JsString(i.name),
         "description" -> JsString(i.description),
         "possibleValues" -> JsArray(i.possibleChoices.map((s:String) => JsString(s)).toVector),
-        "id" -> LongJsonFormat.write(obj.id),
-        "createdOn" -> LongJsonFormat.write(obj.createdOn.getTime)))
+        "id" -> LongJsonFormat.write(i.id),
+        "createdOn" -> LongJsonFormat.write(i.createdOn.getTime)))
       case t:TaxonField => JsObject(Map(
         "name" -> JsString(t.name),
         "description" -> JsString(t.description),
         "root" -> treeFormat.write(t.root),
-        "id" -> LongJsonFormat.write(obj.id),
-        "createdOn" -> LongJsonFormat.write(obj.createdOn.getTime)))
+        "id" -> LongJsonFormat.write(t.id),
+        "createdOn" -> LongJsonFormat.write(t.createdOn.getTime)))
       case c: BooleanField => JsObject(Map(
         "name" -> JsString(c.name),
         "description" -> JsString(c.description),
-        "id" -> LongJsonFormat.write(obj.id),
-        "createdOn" -> LongJsonFormat.write(obj.createdOn.getTime)
+        "id" -> LongJsonFormat.write(c.id),
+        "createdOn" -> LongJsonFormat.write(c.createdOn.getTime)
       ))
       case _ => JsArray()
     }
