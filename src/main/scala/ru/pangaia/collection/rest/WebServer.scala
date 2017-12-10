@@ -30,12 +30,22 @@ object WebServer {
     implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 
     val route: Route =
-      get {
+      get
+      {
         val maybeItem: Future[Option[CatalogCard]] = fetchItem
 
         onSuccess(maybeItem) {
           case Some(item) => complete(item)
           case None       => complete(StatusCodes.NotFound)
+        }
+      } ~ post
+      {
+        path("createDB")
+        {
+          onSuccess(Future {None})
+          {
+            items => complete(StatusCodes.OK)
+          }
         }
       }
     val host = "localhost"

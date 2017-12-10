@@ -76,7 +76,8 @@ object Marshallers
     override def write(obj: Record): JsValue = JsObject(Map(
       "id" -> LongJsonFormat.write(obj.id),
       "createdOn" -> LongJsonFormat.write(obj.createdOn.getTime),
-      "field" -> fieldFormat.write(obj.field),
+//      "field" -> fieldFormat.write(obj.field),
+      "fieldName" -> JsString(obj.field.name),
       "value" -> JsString(obj.value)))
 
     override def read(json: JsValue): Record = ???
@@ -98,7 +99,8 @@ object Marshallers
       "id" -> LongJsonFormat.write(obj.id),
       "createdOn" -> LongJsonFormat.write(obj.createdOn.getTime),
       "records" -> JsArray(obj.records.map(recordFormat.write).toVector),
-      "coll" -> collectibleFormat.write(obj.coll)))
+      "collectibleName" -> JsString(obj.coll.name)))
+//      "coll" -> collectibleFormat.write(obj.coll)))
 
     override def read(json: JsValue): CatalogCard = ???
   }
