@@ -40,23 +40,23 @@ object Marshallers
 
     override def write(obj: CardField): JsValue = obj match
     {
-      case i:IntField=> JsObject(Map(
+      case i: IntField=> JsObject(Map(
         "name" -> JsString(i.name),
         "description" -> JsString(i.description),
         "id" -> LongJsonFormat.write(i.id),
         "createdOn" -> LongJsonFormat.write(i.createdOn.getTime)))
-      case i:StringField => JsObject(Map(
+      case i: StringField => JsObject(Map(
         "name" -> JsString(i.name),
         "description" -> JsString(i.description),
         "id" -> LongJsonFormat.write(i.id),
         "createdOn" -> LongJsonFormat.write(i.createdOn.getTime)))
-      case i:ChoiceField => JsObject(Map(
+      case i: ChoiceField => JsObject(Map(
         "name" -> JsString(i.name),
         "description" -> JsString(i.description),
         "possibleValues" -> JsArray(i.possibleChoices.map((s:String) => JsString(s)).toVector),
         "id" -> LongJsonFormat.write(i.id),
         "createdOn" -> LongJsonFormat.write(i.createdOn.getTime)))
-      case t:TaxonField => JsObject(Map(
+      case t: TaxonField => JsObject(Map(
         "name" -> JsString(t.name),
         "description" -> JsString(t.description),
         "root" -> treeFormat.write(t.root),
