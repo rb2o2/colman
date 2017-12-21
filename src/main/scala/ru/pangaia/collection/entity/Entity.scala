@@ -17,9 +17,9 @@ trait Entity
 {
   val id: Long = Entity.getAndInc
   val createdOn: Timestamp = Timestamp.from(Instant.now)
-//  var modifiedOn: Timestamp
-//  val createdBy: User
-//  var modifiedBy: User
+  var modifiedOn: Option[Timestamp] = None
+  val createdBy: User
+  var modifiedBy: Option[User]
 }
 object Entity
 {
@@ -32,7 +32,23 @@ object Entity
     c
   }
 }
-trait User extends Named with Entity
+trait User extends Entity
+{
+  var name: String
+  val login: String
+  var password: String
+  var email: String
+}
+object RootAuthority extends User
+{
+  override var name = "ROOT_AUTHORITY"
+  override val login = "root"
+  override var password = "root"
+  override var email = "rb2o2.dev@gmail.com"
+  override val createdBy: User = RootAuthority
+  override var modifiedBy: Option[User] = None
+}
+
 
 trait Named
 {
@@ -43,29 +59,40 @@ trait Named
 //Test case-----------
 object ACard
 {
+  implicit val user: User = RootAuthority
   val card : CatalogCard =
   {
 //    val catTree = CategoryNode("root1", Cat("root", "some category"), ListBuffer(
 //      CategoryNode("man", Cat("man", "a man"), ListBuffer()),
 //      CategoryNode("woman", Cat("woman", "a woman"), ListBuffer())))
-    val flds: Seq[CardField] = List(
-      StringField("Title", "Заглавие"),
-      StringField("Author", "Автор"),
-      IntField("Pages", "Количество страниц").withRegex("[1-9][0-9]{0,3}"),
-      ChoiceField("Periodicity", "", List("Книга", "Альманах", "Журнал", "Статья")),
+    val flds: Map[String, CardField] = Map(
+      "Title" -> StringField("Title", "Заглавие"),
+      "Author" -> StringField("Author", "Автор"),
+      "Pages" -> IntField("Pages", "Количество страниц").withRegex("[1-9][0-9]{0,3}"),
+      "Periodicity" -> ChoiceField("Periodicity", "", List("Книга", "Альманах", "Журнал", "Статья")),
 //      TaxonField("Author's sex", "Sex of the author", catTree)
     )
-    val book: Collectible = Collectible("BOOK",fields = flds)
-    val card: CatalogCard = CatalogCard(book, List())
+    val book: Collectible = Collectible("BOOK",fields=flds)
+    val card: CatalogCard = CatalogCard(book, Array())
     card.records.foreach((r:Record) => r match
     {
-      case Record(StringField("Title", _), _) => r.field.writeToRecord(r, "Властелин колец")
-      case Record(StringField("Author", _), _) => r.field.writeToRecord(r, "Дж. Р. Р. Толкиен")
-      case Record(ChoiceField("Periodicity", _, _), _) => r.field.writeToRecord(r, "Книга")
-//      case Record(TaxonField("Author's sex", _, _), _) => r.field.writeToRecord(r, "man")
-      case Record(IntField("Pages", _), _) => r.field.writeToRecord(r, "1020")
+      case Record(StringField("Title", _)) => r.field.writeToRecord(r, "Властелин колец")
+      case Record(StringField("Author", _)) => r.field.writeToRecord(r, "Дж. Р. Р. Толкиен")
+      case Record(ChoiceField("Periodicity", _, _)) => r.field.writeToRecord(r, "Книга")
+//      case Record(TaxonField("Author's sex", _, _)) => r.field.writeToRecord(r, "man")
+      case Record(IntField("Pages", _)) => r.field.writeToRecord(r, "1020")
       case _ => ()
     })
+//    card.coll.fields.values.foreach((r:CardField) => r match
+//    {
+//      case StringField("Title", _) => r.writeToRecord(Record(), "Властелин колец")
+//      case StringField("Author", _) => r.field.writeToRecord(r, "Дж. Р. Р. Толкиен")
+//      case ChoiceField("Periodicity", _, _) => r.field.writeToRecord(r, "Книга")
+////      case Record(TaxonField("Author's sex", _, _), _) => r.field.writeToRecord(r, "man")
+//      case IntField("Pages", _) => r.field.writeToRecord(r, "1020")
+//      case _ => ()
+//    })
+
     println(card)
     card
   }

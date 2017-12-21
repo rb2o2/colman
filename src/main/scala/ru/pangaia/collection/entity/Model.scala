@@ -1,24 +1,41 @@
 package ru.pangaia.collection.entity
 
 import java.io.{FileInputStream, InputStreamReader}
+import java.sql.Timestamp
+import java.time.Instant
 
 import scala.collection.generic.Growable
 import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
 
-case class Collectible(override val name: String,
-                       override val description: String = "generic collection",
-                       fields: Seq[CardField]) extends Named with Entity
+case class Collectible(name: String, description: String = "generic collection",
+                       fields: Map[String, CardField])(implicit user: User) extends Named with Entity
+{
+  override var modifiedBy: Option[User] = None
+  override val createdBy: User = user
+}
 
-case class Record(field: CardField, var value: String) extends Entity
+case class Record(field: CardField)(implicit user: User) extends Entity
+{
+  private var valu: String = ""
+  override val createdBy: User = user
+  override var modifiedBy: Option[User] = None
+  def value_=(value: String)(implicit user: User) : Unit =
+  {
+    this.modifiedOn = Some(Timestamp.from(Instant.now))
+    this.modifiedBy = Some(user)
+    this.valu = value
+  }
+  def value: String = valu
+}
 
 sealed trait CardField extends Named with Entity
 {
   type choiceType = String
   type recordType
   def validate(s: String): Boolean = s.matches(pattern)
-  def writeToRecord(r: Record, s: String): Unit =
+  def writeToRecord(r: Record, s: String)(implicit user: User): Unit =
   {
     if (r.field == this && validate(s)) r.value = s.toString
   }
@@ -29,8 +46,11 @@ sealed trait CardField extends Named with Entity
 }
 
 case class StringField(override val name: String,
-                       override val description: String) extends CardField
+                       override val description: String)(implicit user: User) extends CardField
 {
+
+  override val createdBy: User = user
+  override var modifiedBy: Option[User] = None
   override type recordType = String
   override val default: String = "--"
 
@@ -39,8 +59,11 @@ case class StringField(override val name: String,
   var pattern = ".*"
 }
 case class IntField(override val name: String,
-                    override val description: String) extends CardField
+                    override val description: String)(implicit user: User) extends CardField
 {
+
+  override val createdBy: User = user
+  override var modifiedBy: Option[User] = None
   override type recordType = Int
   override val default: String = "0"
 
@@ -49,9 +72,11 @@ case class IntField(override val name: String,
   var pattern = "[1-9][0-9]*"
 }
 case class BooleanField(override val name: String,
-                        override val description: String) extends CardField
+                        override val description: String)(implicit user: User) extends CardField
 {
 
+  override val createdBy: User = user
+  override var modifiedBy: Option[User] = None
   override type recordType = Boolean
   override val default: String = "false"
   override def read(record: Record) = record.value match
@@ -66,9 +91,11 @@ case class BooleanField(override val name: String,
 }
 case class ChoiceField(override val name: String,
                        override val description: String,
-                       possibleChoices: Seq[String]) extends CardField
+                       possibleChoices: Seq[String])(implicit user: User) extends CardField
 {
 
+  override val createdBy: User = user
+  override var modifiedBy: Option[User] = None
   override type recordType = String
 
   override def read(record: Record) = Some(record.value)
@@ -80,7 +107,11 @@ case class ChoiceField(override val name: String,
   var pattern = ".*"
 }
 
-case class Cat(override val name: String, override val description: String) extends Named with Entity
+case class Cat(override val name: String, override val description: String)(implicit user: User) extends Named with Entity
+{
+  override val createdBy: User = user
+  override var modifiedBy: Option[User] = None
+}
 
 case class CategoryNode(index: String,
                         value: Cat,
@@ -124,7 +155,7 @@ case object InverseCategoryNode
       {
         sb.append(cbuff)
       }
-      ???
+      ??? //TODO
     }
     catch
     {
@@ -140,6 +171,7 @@ case object CategoryNode
 {
   def rootFromInverse(nodes: Map[String,InverseCategoryNode]): CategoryNode =
   {
+    implicit val user:User = RootAuthority
     val root = CategoryNode("UDC", Cat("root","Корень УДК"), ListBuffer[CategoryNode]())
     //    def addBranch(node: InverseCategoryNode, catnode: CategoryNode) =
     //    {
@@ -162,9 +194,11 @@ case object CategoryNode
 
 case class TaxonField(override val name: String,
                       override val description: String,
-                      root: CategoryNode) extends CardField with Entity
+                      root: CategoryNode)(implicit user: User) extends CardField
 {
 
+  override val createdBy: User = user
+  override var modifiedBy: Option[User] = None
   override type recordType = String
 
   override def read(record: Record) = Some(record.value)
@@ -177,9 +211,16 @@ case class TaxonField(override val name: String,
 }
 
 
-case class CatalogCard(coll: Collectible, var records: List[Record]) extends Entity
+case class CatalogCard(coll: Collectible, var records: Array[Record])(implicit user: User) extends Entity
 {
-  records = coll.fields.map((fld: CardField) => Record(fld, fld.default)).toList
+
+  override val createdBy: User = user
+  override var modifiedBy: Option[User] = None
+
+  records = coll.fields.values.map((fld: CardField) => Record(fld)).toArray
+
+  def getRecordValueByFieldName(fldName: String): Option[String] =
+    records.find((r) => r.field == coll.fields(fldName)).map((r) => r.value)
 
   override def toString: String = records.map((r: Record)=>
   {

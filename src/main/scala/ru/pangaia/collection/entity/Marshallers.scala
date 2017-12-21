@@ -1,5 +1,7 @@
 package ru.pangaia.collection.entity
 
+import java.sql.Timestamp
+
 import spray.json.{JsArray, JsObject, JsString, JsValue, RootJsonFormat}
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import spray.json.DefaultJsonProtocol._
@@ -12,6 +14,11 @@ object Marshallers
     override def write(obj: Cat): JsValue = JsObject(Map(
       "id" -> LongJsonFormat.write(obj.id),
       "createdOn" -> LongJsonFormat.write(obj.createdOn.getTime),
+      "modifiedOn" -> (obj.modifiedOn match
+      {
+        case Some(s: Timestamp) => LongJsonFormat.write(s.getTime)
+        case None => LongJsonFormat.write(0)
+      }),
       "name" -> JsString(obj.name),
       "description" -> JsString(obj.description)))
 
@@ -43,30 +50,39 @@ object Marshallers
       case i: IntField=> JsObject(Map(
         "name" -> JsString(i.name),
         "description" -> JsString(i.description),
-        "id" -> LongJsonFormat.write(i.id),
-        "createdOn" -> LongJsonFormat.write(i.createdOn.getTime)))
+        "id" -> LongJsonFormat.write(i.id)
+//        ,"createdOn" -> LongJsonFormat.write(i.createdOn.getTime)
+       ))
       case i: StringField => JsObject(Map(
         "name" -> JsString(i.name),
+        "modifiedOn" -> (obj.modifiedOn match
+        {
+          case Some(s: Timestamp) => LongJsonFormat.write(s.getTime)
+          case None => LongJsonFormat.write(0)
+        }),
         "description" -> JsString(i.description),
-        "id" -> LongJsonFormat.write(i.id),
-        "createdOn" -> LongJsonFormat.write(i.createdOn.getTime)))
+        "id" -> LongJsonFormat.write(i.id)
+//        ,"createdOn" -> LongJsonFormat.write(i.createdOn.getTime)
+       ))
       case i: ChoiceField => JsObject(Map(
         "name" -> JsString(i.name),
         "description" -> JsString(i.description),
         "possibleValues" -> JsArray(i.possibleChoices.map((s:String) => JsString(s)).toVector),
-        "id" -> LongJsonFormat.write(i.id),
-        "createdOn" -> LongJsonFormat.write(i.createdOn.getTime)))
+        "id" -> LongJsonFormat.write(i.id)
+//        ,"createdOn" -> LongJsonFormat.write(i.createdOn.getTime)
+       ))
       case t: TaxonField => JsObject(Map(
         "name" -> JsString(t.name),
         "description" -> JsString(t.description),
         "root" -> treeFormat.write(t.root),
-        "id" -> LongJsonFormat.write(t.id),
-        "createdOn" -> LongJsonFormat.write(t.createdOn.getTime)))
+        "id" -> LongJsonFormat.write(t.id)
+//        ,"createdOn" -> LongJsonFormat.write(t.createdOn.getTime)
+       ))
       case c: BooleanField => JsObject(Map(
         "name" -> JsString(c.name),
         "description" -> JsString(c.description),
-        "id" -> LongJsonFormat.write(c.id),
-        "createdOn" -> LongJsonFormat.write(c.createdOn.getTime)
+        "id" -> LongJsonFormat.write(c.id)
+//        ,"createdOn" -> LongJsonFormat.write(c.createdOn.getTime)
       ))
       case _ => JsArray()
     }
@@ -75,7 +91,12 @@ object Marshallers
   {
     override def write(obj: Record): JsValue = JsObject(Map(
       "id" -> LongJsonFormat.write(obj.id),
-      "createdOn" -> LongJsonFormat.write(obj.createdOn.getTime),
+//      "modifiedOn" -> (obj.modifiedOn match
+//      {
+//        case Some(s: Timestamp) => LongJsonFormat.write(s.getTime)
+//        case None => LongJsonFormat.write(0)
+//      }),
+//      "createdOn" -> LongJsonFormat.write(obj.createdOn.getTime),
 //      "field" -> fieldFormat.write(obj.field),
       "fieldName" -> JsString(obj.field.name),
       "value" -> JsString(obj.value)))
@@ -86,8 +107,8 @@ object Marshallers
   {
     override def write(obj: Collectible): JsValue = JsObject(Map(
       "id" -> LongJsonFormat.write(obj.id),
-      "createdOn" -> LongJsonFormat.write(obj.createdOn.getTime),
-      "fields" -> JsArray(obj.fields.map(fieldFormat.write).toVector),
+//      "createdOn" -> LongJsonFormat.write(obj.createdOn.getTime),
+      "fields" -> JsArray(obj.fields.values.map(fieldFormat.write).toVector),
       "name" -> JsString(obj.name),
       "description" -> JsString(obj.description)))
 
@@ -97,7 +118,7 @@ object Marshallers
   {
     override def write(obj: CatalogCard): JsValue = JsObject(Map(
       "id" -> LongJsonFormat.write(obj.id),
-      "createdOn" -> LongJsonFormat.write(obj.createdOn.getTime),
+//      "createdOn" -> LongJsonFormat.write(obj.createdOn.getTime),
       "records" -> JsArray(obj.records.map(recordFormat.write).toVector),
       "collectibleName" -> JsString(obj.coll.name)))
 //      "coll" -> collectibleFormat.write(obj.coll)))
