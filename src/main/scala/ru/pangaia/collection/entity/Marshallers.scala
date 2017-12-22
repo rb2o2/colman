@@ -108,7 +108,7 @@ object Marshallers
     override def write(obj: Collectible): JsValue = JsObject(Map(
       "id" -> LongJsonFormat.write(obj.id),
 //      "createdOn" -> LongJsonFormat.write(obj.createdOn.getTime),
-      "fields" -> JsArray(obj.fields.values.map(fieldFormat.write).toVector),
+      "fields" -> JsArray(obj.fieldsVector.map(fieldFormat.write)),
       "name" -> JsString(obj.name),
       "description" -> JsString(obj.description)))
 
@@ -119,7 +119,7 @@ object Marshallers
     override def write(obj: CatalogCard): JsValue = JsObject(Map(
       "id" -> LongJsonFormat.write(obj.id),
 //      "createdOn" -> LongJsonFormat.write(obj.createdOn.getTime),
-      "records" -> JsArray(obj.records.map(recordFormat.write).toVector),
+      "records" -> JsArray(obj.recordsVector.map(recordFormat.write)),
       "collectibleName" -> JsString(obj.coll.name)))
 //      "coll" -> collectibleFormat.write(obj.coll)))
 
