@@ -9,7 +9,7 @@ trait Entity
   val createdOn: Timestamp = Timestamp.from(Instant.now)
   var modifiedOn: Option[Timestamp] = None
   val createdBy: User
-  var modifiedBy: Option[User]
+  var modifiedBy: Option[User] = None
 }
 
 object Entity
@@ -39,7 +39,6 @@ object RootAuthority extends User
   override var password = "root"
   override var email = "rb2o2.dev@gmail.com"
   override val createdBy: User = RootAuthority
-  override var modifiedBy: Option[User] = None
 }
 
 trait Named

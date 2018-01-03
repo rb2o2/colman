@@ -12,19 +12,20 @@ class TestSuite extends FunSuite
     implicit val user: User = RootAuthority
     val card: CatalogCard =
     {
+      val periodicityChoices = Set("Книга", "Альманах", "Журнал", "Статья")
       val flds: mutable.Map[String, CardField] = mutable.Map(
         "Title" -> StringField("Title", "Заглавие"),
         "Author" -> StringField("Author", "Автор"),
-        "Pages" -> IntField("Pages", "Количество страниц").withRegex("[1-9][0-9]{0,3}"),
-        "Periodicity" -> ChoiceField("Periodicity", "", List("Книга", "Альманах", "Журнал", "Статья")),
+        "Pages" -> IntField("Pages", "Количество страниц"),
+        "Periodicity" -> ChoiceField("Periodicity", "", periodicityChoices)
       )
       val book: Collectible = Collectible("BOOK", fields = flds)
-      val card: CatalogCard = CatalogCard(book, Array())
+      val card: CatalogCard = CatalogCard(book)
       Map(
         "Title" -> "Властелин колец",
         "Author" -> "Дж. Р. Р. Толкиен",
         "Periodicity" -> "Книга",
-        "Pages" -> "1020").foreach[Unit]((a) => card.writeToFieldRecord(a._1, a._2))
+        "Pages" -> "1020").foreach((a) => card.writeToFieldRecord(card.coll.getField(a._1).get)( a._2))
       println(card)
       card
     }
