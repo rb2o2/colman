@@ -11,11 +11,11 @@ import scala.util.{Failure, Success, Try}
 
 
 case class Collectible(name: String, description: String = "generic collection",
-                       private val fields: mutable.Map[String, CardField])(implicit user: User) extends Named with Entity
+                       fields: mutable.Map[String, CardField])(implicit user: User) extends Named with Entity
 {
   override val createdBy: User = user
 
-  def recordsArrayFromFields: Array[Record] = fields.values.map((fld: CardField) => Record(fld)).toArray
+  def initRecordsVectorFromFields: Vector[Record] = fields.values.map((fld: CardField) => Record(fld)).toVector
 
   def getField(fldName: String): Option[CardField] = fields.get(fldName)
 
@@ -84,7 +84,6 @@ case class IntField(override val name: String,
   override val default = 0
   var pattern = "[1-9][0-9]*"
 
-
   override def valid(s: String): Boolean = Try {s.toInt} match
   {
     case a: Success[_] => true
@@ -101,7 +100,6 @@ case class BooleanField(override val name: String,
   override val createdBy: User = user
   override val default = false
 
-
   override def valid(s: String): Boolean = s.matches("true|false")
 
   override def read(record: Record): Option[recordType] = record.value match
@@ -110,7 +108,6 @@ case class BooleanField(override val name: String,
     case "false" => Some(false)
     case _ => None
   }
-
 }
 
 case class ChoiceString(choices: Set[String], choice: String)
@@ -118,6 +115,7 @@ case class ChoiceString(choices: Set[String], choice: String)
   if (!choices.contains(choice)) throw new IllegalArgumentException("Choice does not contain in possible choices")
   override def toString: String = choice
 }
+
 case class ChoiceField(override val name: String,
                        override val description: String,
                        possibleChoices: Set[String])(implicit user: User) extends CardField
@@ -174,7 +172,7 @@ case class CategoryNode(index: String,
 
 case class TaxonField(override val name: String,
                       override val description: String,
-                      root: CategoryNode)(implicit user: User) extends CardField//TODO
+                      root: CategoryNode)(implicit user: User) extends CardField
 {
   override type recordType = Cat
   override val createdBy: User = user
@@ -188,9 +186,17 @@ case class TaxonField(override val name: String,
 
 case class CatalogCard(coll: Collectible)(implicit user: User) extends Entity
 {
-
   override val createdBy: User = user
-  private var records = coll.recordsArrayFromFields
+  private var vec = coll.initRecordsVectorFromFields
+  private def records: Vector[Record] =
+    {
+      vec.filter(r => coll.fields.values.toVector.count(f => r.field == f) == 1) ++
+        //picks records for which one field exist in collectible in case a field was removed
+        coll.fields.values.toVector.filterNot((f) => vec.exists(r => r.field == f))
+          .map((f) => Record(f))
+      //creates new records for fields which has no corresponding records in case a field was created
+      //TODO optimize
+    }
 
   def getRecordValueByFieldName(fldName: String): Option[String] =
     records.find((r) => r.field == coll.getField(fldName).get).map((r) => r.value)
