@@ -1,12 +1,10 @@
 package ru.pangaia.collection.entity
 
-import java.io.{FileInputStream, InputStreamReader}
 import java.sql.Timestamp
 import java.time.Instant
 
 import scala.collection.generic.Growable
 import scala.collection.mutable
-import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.util.{Failure, Success, Try}
 
 
@@ -25,6 +23,7 @@ case class Collectible(name: String, description: String = "generic collection",
   {
     fields += (fld.name -> fld)
     modifiedBy = Some(user)
+    modifiedComment = Some(s"added field: $fld")
     modifiedOn = Some(Timestamp.from(Instant.now()))
   }
 }
@@ -32,12 +31,13 @@ case class Collectible(name: String, description: String = "generic collection",
 case class Record(field: CardField)(implicit user: User) extends Entity
 {
   override val createdBy: User = user
-  private var valu: String = ""
+  private var valu: String = field.default.toString
 
   def value_=(value: String)(implicit user: User): Unit =
   {
     this.modifiedOn = Some(Timestamp.from(Instant.now))
     this.modifiedBy = Some(user)
+    this.modifiedComment = Some(s"value changed from: $valu to: $value")
     this.valu = value
   }
 
@@ -48,6 +48,7 @@ sealed trait CardField extends Named with Entity
 {
   type recordType
   val default: recordType
+
   def writeToRecord(r: Record, s: String)(implicit user: User): Try[Unit] =
   {
     Try {
@@ -69,7 +70,7 @@ case class StringField(override val name: String,
   override type recordType = String
   override val createdBy: User = user
   override val default: String = "--"
-  var pattern = ".*"
+  private var pattern = ".*"
 
   override def valid(s: String): Boolean = true
 
@@ -82,7 +83,7 @@ case class IntField(override val name: String,
   override type recordType = Int
   override val createdBy: User = user
   override val default = 0
-  var pattern = "[1-9][0-9]*"
+  private var pattern = "[1-9][0-9]*"
 
   override def valid(s: String): Boolean = Try {s.toInt} match
   {
@@ -112,7 +113,7 @@ case class BooleanField(override val name: String,
 
 case class ChoiceString(choices: Set[String], choice: String)
 {
-  if (!choices.contains(choice)) throw new IllegalArgumentException("Choice does not contain in possible choices")
+  require(choices.contains(choice), "Choice does not contain in possible choices")
   override def toString: String = choice
 }
 
@@ -123,7 +124,6 @@ case class ChoiceField(override val name: String,
   override type recordType = ChoiceString
   override val createdBy: User = user
   override val default: ChoiceString = ChoiceString(possibleChoices, possibleChoices.head)
-  var pattern = ".*"
 
   override def read(record: Record) = Some(ChoiceString(possibleChoices, record.value))
 
@@ -177,7 +177,7 @@ case class TaxonField(override val name: String,
   override type recordType = Cat
   override val createdBy: User = user
   override val default: Cat = root.value
-  var pattern: String = ".*"
+  private var pattern: String = ".*"
 
   override def valid(s: String): Boolean = root.containsDeeper(s)
 
@@ -199,7 +199,14 @@ case class CatalogCard(coll: Collectible)(implicit user: User) extends Entity
     }
 
   def getRecordValueByFieldName(fldName: String): Option[String] =
-    records.find((r) => r.field == coll.getField(fldName).get).map((r) => r.value)
+  {
+    val field: Option[CardField] = coll.getField(fldName)
+    field match
+    {
+      case None => None
+      case Some(f) => records.find((r) => r.field == f).map((r) => r.value)
+    }
+  }
 
   def writeToFieldRecord(field: CardField)(value: String): Unit =
   {
