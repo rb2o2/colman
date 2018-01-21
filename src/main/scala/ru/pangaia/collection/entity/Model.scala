@@ -5,8 +5,8 @@ import java.time.Instant
 
 import scala.collection.generic.Growable
 import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 import scala.util.{Failure, Success, Try}
-
 
 case class Collectible(name: String, description: String = "generic collection",
                        fields: mutable.Map[String, CardField])(implicit user: User) extends Named with Entity
@@ -24,6 +24,29 @@ case class Collectible(name: String, description: String = "generic collection",
     fields += (fld.name -> fld)
     modifiedBy = Some(user)
     modifiedComment = Some(s"added field: $fld")
+    modifiedOn = Some(Timestamp.from(Instant.now()))
+  }
+}
+
+case class Collection(coll: Collectible, override val name: String, override val description: String)(implicit user: User) extends Named with Entity
+{
+  override val createdBy: User = user
+  val list: mutable.Buffer[CatalogCard] = new ArrayBuffer[CatalogCard]()
+
+  def add(c: CatalogCard)(implicit user: User): Unit =
+  {
+    require(c.coll == coll)
+    list += c
+    modifiedBy = Some(user)
+    modifiedComment = Some(s"Added card $c to collection")
+    modifiedOn = Some(Timestamp.from(Instant.now()))
+  }
+
+  def remove(c: CatalogCard)(implicit user: User): Unit =
+  {
+    list -= c
+    modifiedBy = Some(user)
+    modifiedComment = Some(s"Removed card $c from collection")
     modifiedOn = Some(Timestamp.from(Instant.now()))
   }
 }
@@ -67,6 +90,7 @@ sealed trait CardField extends Named with Entity
 case class StringField(override val name: String,
                        override val description: String)(implicit user: User) extends CardField
 {
+  require(!name.isEmpty, "Name must not be empty")
   override type recordType = String
   override val createdBy: User = user
   override val default: String = "--"
@@ -113,7 +137,7 @@ case class BooleanField(override val name: String,
 
 case class ChoiceString(choices: Set[String], choice: String)
 {
-  require(choices.contains(choice), "Choice does not contain in possible choices")
+  require(choices.contains(choice), "Choice is not in possible choices set")
   override def toString: String = choice
 }
 
