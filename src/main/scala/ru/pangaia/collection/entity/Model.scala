@@ -8,8 +8,10 @@ import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.util.{Failure, Success, Try}
 
-case class Collectible(name: String, description: String = "generic collection",
-                       fields: mutable.Map[String, CardField])(implicit user: User) extends Named with Entity
+case class Collectible(override val name: String,
+                       override val description: String = "generic collection",
+                       fields: mutable.Map[String, CardField])
+                      (implicit user: User) extends Named with Entity
 {
   override val createdBy: User = user
 
@@ -28,7 +30,10 @@ case class Collectible(name: String, description: String = "generic collection",
   }
 }
 
-case class Collection(coll: Collectible, override val name: String, override val description: String)(implicit user: User) extends Named with Entity
+case class Collection(coll: Collectible,
+                      override val name: String,
+                      override val description: String)
+                     (implicit user: User) extends Named with Entity
 {
   override val createdBy: User = user
   val list: mutable.Buffer[CatalogCard] = new ArrayBuffer[CatalogCard]()
@@ -88,7 +93,8 @@ sealed trait CardField extends Named with Entity
 }
 
 case class StringField(override val name: String,
-                       override val description: String)(implicit user: User) extends CardField
+                       override val description: String)
+                      (implicit user: User) extends CardField
 {
   require(!name.isEmpty, "Name must not be empty")
   override type recordType = String
@@ -102,7 +108,8 @@ case class StringField(override val name: String,
 }
 
 case class IntField(override val name: String,
-                    override val description: String)(implicit user: User) extends CardField
+                    override val description: String)
+                   (implicit user: User) extends CardField
 {
   override type recordType = Int
   override val createdBy: User = user
@@ -119,7 +126,8 @@ case class IntField(override val name: String,
 }
 
 case class BooleanField(override val name: String,
-                        override val description: String)(implicit user: User) extends CardField
+                        override val description: String)
+                       (implicit user: User) extends CardField
 {
   override type recordType = Boolean
   override val createdBy: User = user
@@ -245,4 +253,3 @@ case class CatalogCard(coll: Collectible)(implicit user: User) extends Entity
     r.field.name + ": " + r.value
   }).mkString("; ")
 }
-

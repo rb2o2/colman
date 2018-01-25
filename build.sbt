@@ -1,4 +1,3 @@
-
 name := "Colman - simple collection manager"
 description := "Personal library/collection management server built on akka-http"
 version := "0.1"
