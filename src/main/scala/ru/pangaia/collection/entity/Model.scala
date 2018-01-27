@@ -220,7 +220,7 @@ case class CatalogCard(coll: Collectible)(implicit user: User) extends Entity
 {
   override val createdBy: User = user
   private var vec = coll.initRecordsVectorFromFields
-  private def records: Vector[Record] =
+  def records: Vector[Record] =
     {
       vec.filter(r => coll.fields.values.toVector.count(f => r.field == f) == 1) ++
         //picks records for which one field exist in collectible in case a field was removed

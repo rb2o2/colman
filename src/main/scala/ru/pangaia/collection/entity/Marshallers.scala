@@ -25,6 +25,25 @@ object Marshallers
     override def read(json: JsValue): Cat = ???
   }
 
+  implicit val collectionFormat: RootJsonFormat[Collection] = new RootJsonFormat[Collection]
+  {
+    override def write(obj: Collection): JsValue = JsObject(Map(
+      "id" -> LongJsonFormat.write(obj.id),
+      "createdOn" -> LongJsonFormat.write(obj.createdOn.getTime),
+      "modifiedOn" -> (obj.modifiedOn match
+      {
+        case Some(s: Timestamp) => LongJsonFormat.write(s.getTime)
+        case None => LongJsonFormat.write(0)
+      }),
+      "name" -> JsString(obj.name),
+      "description" -> JsString(obj.description),
+      "cards" -> JsArray(obj.list.map(card => cardFormat.write(card)).toVector),
+      "collectible" -> collectibleFormat.write(obj.coll)
+    ))
+
+    override def read(json: JsValue): Collection = ???
+  }
+
   implicit val treeFormat: RootJsonFormat[CategoryNode] = new RootJsonFormat[CategoryNode]
   {
     override def write(obj: CategoryNode): JsValue =
@@ -119,7 +138,7 @@ object Marshallers
     override def write(obj: CatalogCard): JsValue = JsObject(Map(
       "id" -> LongJsonFormat.write(obj.id),
 //      "createdOn" -> LongJsonFormat.write(obj.createdOn.getTime),
-      "records" -> JsArray(obj.recordsVector.map(recordFormat.write)),
+      "records" -> JsArray(obj.records.map(recordFormat.write)),
       "collectibleName" -> JsString(obj.coll.name)))
 //      "coll" -> collectibleFormat.write(obj.coll)))
 

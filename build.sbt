@@ -6,13 +6,13 @@ version := "0.1"
 scalaVersion := "0.5.0-RC1"
 
 excludeFilter :=
-  FileFilter.globFilter("*Marshallers*") ||
+//  FileFilter.globFilter("*Marshallers*") ||
   FileFilter.globFilter("*WebServer*") ||
   FileFilter.globFilter("*DB*")
 
 libraryDependencies ++= Seq(
 //  "com.typesafe.akka" %% "akka-http" % "10.0.10",
-//  "com.typesafe.akka" %% "akka-http-spray-json" % "10.0.10",
+  "com.typesafe.akka" % "akka-http-spray-json_2.12" % "10.0.10",
 //  "com.typesafe.akka" %% "akka-stream" % "2.5.4",
 //  "com.typesafe.akka" %% "akka-actor"  % "2.5.4",
   "org.scalatest" % "scalatest_2.12" % "3.0.4" % "test"
