@@ -6,9 +6,9 @@ version := "0.1"
 scalaVersion := "0.5.0-RC1"
 
 excludeFilter :=
-//  FileFilter.globFilter("*Marshallers*") ||
+  FileFilter.globFilter("*Marshallers*") ||
   FileFilter.globFilter("*WebServer*") ||
-  FileFilter.globFilter("*DB*")
+  FileFilter.globFilter("*Persistence*")
 
 libraryDependencies ++= Seq(
 //  "com.typesafe.akka" %% "akka-http" % "10.0.10",
