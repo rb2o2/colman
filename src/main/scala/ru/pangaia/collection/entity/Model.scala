@@ -26,7 +26,7 @@ case class Collectible(override val name: String,
     fields += (fld.name -> fld)
     modifiedBy = Some(user)
     modifiedComment = Some(s"added field: $fld")
-    modifiedOn = Some(Timestamp.from(Instant.now()))
+    modifiedOn = Some(Instant.now())
   }
 }
 
@@ -44,7 +44,7 @@ case class Collection(coll: Collectible,
     list += c
     modifiedBy = Some(user)
     modifiedComment = Some(s"Added card $c to collection")
-    modifiedOn = Some(Timestamp.from(Instant.now()))
+    modifiedOn = Some(Instant.now())
   }
 
   def remove(c: CatalogCard)(implicit user: User): Unit =
@@ -52,7 +52,7 @@ case class Collection(coll: Collectible,
     list -= c
     modifiedBy = Some(user)
     modifiedComment = Some(s"Removed card $c from collection")
-    modifiedOn = Some(Timestamp.from(Instant.now()))
+    modifiedOn = Some(Instant.now())
   }
 }
 
@@ -63,7 +63,7 @@ case class Record(field: CardField)(implicit user: User) extends Entity
 
   def value_=(value: String)(implicit user: User): Unit =
   {
-    this.modifiedOn = Some(Timestamp.from(Instant.now))
+    this.modifiedOn = Some(Instant.now)
     this.modifiedBy = Some(user)
     this.modifiedComment = Some(s"value changed from: $valu to: $value")
     this.valu = value

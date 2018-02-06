@@ -1,8 +1,9 @@
 package ru.pangaia.collection.entity
 
 import java.sql.Timestamp
+import java.time.Instant
 
-import spray.json.{JsArray, JsObject, JsString, JsValue, RootJsonFormat}
+import spray.json._
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import spray.json.DefaultJsonProtocol._
 
@@ -13,10 +14,10 @@ object Marshallers
   {
     override def write(obj: Cat): JsValue = JsObject(Map(
       "id" -> LongJsonFormat.write(obj.id),
-      "createdOn" -> LongJsonFormat.write(obj.createdOn.getTime),
+      "createdOn" -> LongJsonFormat.write(obj.createdOn.toEpochMilli),
       "modifiedOn" -> (obj.modifiedOn match
       {
-        case Some(s: Timestamp) => LongJsonFormat.write(s.getTime)
+        case Some(s: Instant) => LongJsonFormat.write(s.toEpochMilli)
         case None => LongJsonFormat.write(0)
       }),
       "name" -> JsString(obj.name),
@@ -29,10 +30,10 @@ object Marshallers
   {
     override def write(obj: Collection): JsValue = JsObject(Map(
       "id" -> LongJsonFormat.write(obj.id),
-      "createdOn" -> LongJsonFormat.write(obj.createdOn.getTime),
+      "createdOn" -> LongJsonFormat.write(obj.createdOn.toEpochMilli),
       "modifiedOn" -> (obj.modifiedOn match
       {
-        case Some(s: Timestamp) => LongJsonFormat.write(s.getTime)
+        case Some(s: Instant) => LongJsonFormat.write(s.toEpochMilli)
         case None => LongJsonFormat.write(0)
       }),
       "name" -> JsString(obj.name),
@@ -76,7 +77,7 @@ object Marshallers
         "name" -> JsString(i.name),
         "modifiedOn" -> (obj.modifiedOn match
         {
-          case Some(s: Timestamp) => LongJsonFormat.write(s.getTime)
+          case Some(s: Instant) => LongJsonFormat.write(s.toEpochMilli)
           case None => LongJsonFormat.write(0)
         }),
         "description" -> JsString(i.description),

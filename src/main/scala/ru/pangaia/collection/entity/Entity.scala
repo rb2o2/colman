@@ -1,13 +1,12 @@
 package ru.pangaia.collection.entity
 
-import java.sql.Timestamp
 import java.time.Instant
 
 trait Entity
 {
   val id: Long = Entity.getAndInc
-  val createdOn: Timestamp = Timestamp.from(Instant.now)
-  var modifiedOn: Option[Timestamp] = None
+  val createdOn: Instant = Instant.now
+  var modifiedOn: Option[Instant] = None
   val createdBy: User
   var modifiedBy: Option[User] = None
   var modifiedComment: Option[String] = None

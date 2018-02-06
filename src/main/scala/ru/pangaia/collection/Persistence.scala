@@ -12,6 +12,8 @@ trait Repository[T <: Entity]
   def getById(id: Long) : Option[T]
 
   def add(entity: T): Unit
+
+  def getAll: Seq[T]
 }
 
 class CardFieldRepository extends Repository[CardField]
@@ -21,6 +23,8 @@ class CardFieldRepository extends Repository[CardField]
   override def getById(id: Long): Option[CardField] = values.get(id)
 
   override def add(entity: CardField): Unit = {values.put(entity.id, entity);()}
+
+  override def getAll: Seq[CardField] = values.values.toSeq
 }
 
 class CatalogCardRepository extends Repository[CatalogCard]
@@ -30,6 +34,8 @@ class CatalogCardRepository extends Repository[CatalogCard]
   override def getById(id: Long): Option[CatalogCard] = values.get(id)
 
   override def add(entity: CatalogCard): Unit = {values.put(entity.id, entity);()}
+
+  override def getAll: Seq[CatalogCard] = values.values.toSeq
 }
 
 class CollectionRepository extends Repository[Collection]
@@ -39,6 +45,8 @@ class CollectionRepository extends Repository[Collection]
   override def getById(id: Long): Option[Collection] = values.get(id)
 
   override def add(entity: Collection): Unit = {values.put(entity.id, entity);()}
+
+  override def getAll: Seq[Collection] = values.values.toSeq
 }
 
 class CollectibleRepository extends Repository[Collectible]
@@ -48,6 +56,8 @@ class CollectibleRepository extends Repository[Collectible]
   override def getById(id: Long): Option[Collectible] = values.get(id)
 
   override def add(entity: Collectible): Unit = {values.put(entity.id, entity);()}
+
+  override def getAll: Seq[Collectible] = values.values.toSeq
 }
 
 class UserRepository extends Repository[User]
@@ -76,6 +86,19 @@ class UserRepository extends Repository[User]
   override def add(entity: User): Unit = {values.put(entity.id, entity); ()}
 
   def getRoot: User = getById(-1).get
+
+  override def getAll: Seq[User] = values.values.toSeq
+}
+
+class RecordRepository extends Repository[Record]
+{
+  private val values = mutable.Map[Long, Record]()
+
+  override def getById(id: Long): Option[Record] = values.get(id)
+
+  override def add(entity: Record): Unit = {values.put(entity.id, entity); ()}
+
+  override def getAll: Seq[Record] = values.values.toSeq
 }
 
 class DB {
