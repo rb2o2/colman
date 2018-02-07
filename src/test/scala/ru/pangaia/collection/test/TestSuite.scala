@@ -33,11 +33,19 @@ class TestSuite extends FunSuite
 
   test("true is true")
   {
-    assert(true)
+    assert(1==1)
   }
 
   test("createdBy is RootAuthority")
   {
     assert {ACard.card.createdBy == RootAuthority}
+  }
+
+  test("proper serialization")
+  {
+    import Marshallers._
+    println("serialized card:")
+    println(cardFormat.write(ACard.card).compactPrint)
+    assert(1==1)
   }
 }

@@ -2,6 +2,10 @@ package ru.pangaia.collection.entity
 
 import java.time.Instant
 
+/**
+  * The root of all persistent classes in the system/
+  * @author Roman Bortnikov rb2o2.dev@gmail.com
+  */
 trait Entity
 {
   val id: Long = Entity.getAndInc
@@ -12,6 +16,9 @@ trait Entity
   var modifiedComment: Option[String] = None
 }
 
+/**
+  * Used to get new [[ru.pangaia.collection.entity.Entity Entity]] id value
+  * */
 object Entity
 {
   private var id_counter:Long = 0L
@@ -24,6 +31,9 @@ object Entity
   }
 }
 
+/**
+  * Parent trait for every user type
+  */
 trait User extends Entity
 {
   var name: String
@@ -32,6 +42,9 @@ trait User extends Entity
   var email: String
 }
 
+/**
+  * The superuser
+  */
 object RootAuthority extends User
 {
   var name = "ROOT_AUTHORITY"
@@ -41,6 +54,9 @@ object RootAuthority extends User
   override val createdBy: User = RootAuthority
 }
 
+/**
+  * Trait for something having a name and a short description
+  */
 trait Named
 {
   val name: String

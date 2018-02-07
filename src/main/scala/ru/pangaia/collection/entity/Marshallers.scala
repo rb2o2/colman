@@ -1,6 +1,5 @@
 package ru.pangaia.collection.entity
 
-import java.sql.Timestamp
 import java.time.Instant
 
 import spray.json._
@@ -14,6 +13,7 @@ object Marshallers
   {
     override def write(obj: Cat): JsValue = JsObject(Map(
       "id" -> LongJsonFormat.write(obj.id),
+      "index" -> JsString(obj.index),
       "createdOn" -> LongJsonFormat.write(obj.createdOn.toEpochMilli),
       "modifiedOn" -> (obj.modifiedOn match
       {
@@ -67,7 +67,7 @@ object Marshallers
 
     override def write(obj: CardField): JsValue = obj match
     {
-      case i: IntField=> JsObject(Map(
+      case i: IntField => JsObject(Map(
         "name" -> JsString(i.name),
         "description" -> JsString(i.description),
         "id" -> LongJsonFormat.write(i.id)
@@ -75,11 +75,11 @@ object Marshallers
        ))
       case i: StringField => JsObject(Map(
         "name" -> JsString(i.name),
-        "modifiedOn" -> (obj.modifiedOn match
-        {
-          case Some(s: Instant) => LongJsonFormat.write(s.toEpochMilli)
-          case None => LongJsonFormat.write(0)
-        }),
+//        "modifiedOn" -> (obj.modifiedOn match
+//        {
+//          case Some(s: Instant) => LongJsonFormat.write(s.toEpochMilli)
+//          case None => LongJsonFormat.write(0)
+//        }),
         "description" -> JsString(i.description),
         "id" -> LongJsonFormat.write(i.id)
 //        ,"createdOn" -> LongJsonFormat.write(i.createdOn.getTime)
@@ -140,8 +140,8 @@ object Marshallers
       "id" -> LongJsonFormat.write(obj.id),
 //      "createdOn" -> LongJsonFormat.write(obj.createdOn.getTime),
       "records" -> JsArray(obj.records.map(recordFormat.write)),
-      "collectibleName" -> JsString(obj.coll.name)))
-//      "coll" -> collectibleFormat.write(obj.coll)))
+//      "collectibleName" -> JsString(obj.coll.name)))
+      "coll" -> collectibleFormat.write(obj.coll)))
 
     override def read(json: JsValue): CatalogCard = ???
   }

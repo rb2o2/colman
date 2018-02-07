@@ -1,6 +1,5 @@
 package ru.pangaia.collection.entity
 
-import java.sql.Timestamp
 import java.time.Instant
 
 import scala.collection.generic.Growable
@@ -8,6 +7,15 @@ import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.util.{Failure, Success, Try}
 
+/**
+  * A type of things in a collection, i.e. book, postage stamp, coin etc.
+  *
+  * @param name see [[ru.pangaia.collection.entity.Named Named]]
+  * @param description see [[ru.pangaia.collection.entity.Named Named]]
+  * @param fields a [[scala.collection.mutable.Map mutable.Map]] of fields with field name as a key.
+  *               See [[ru.pangaia.collection.entity.CardField CardField]]
+  * @param user creator. Is written to the <code>createdBy</code> field
+  */
 case class Collectible(override val name: String,
                        override val description: String = "generic collection",
                        fields: mutable.Map[String, CardField])
@@ -15,12 +23,37 @@ case class Collectible(override val name: String,
 {
   override val createdBy: User = user
 
+  /**
+    * Makes [[scala.collection.immutable.Vector Vector]] of [[ru.pangaia.collection.entity.Record Records]]
+    * from existing fields. See [[ru.pangaia.collection.entity.Record Record]]
+    * @return Vector of Records
+    *
+    */
   def initRecordsVectorFromFields: Vector[Record] = fields.values.map((fld: CardField) => Record(fld)).toVector
 
+  /**
+    * Gets field of this Collectible by name wrapped in a Option
+    *
+    * @param fldName name of the field which is contained in field Map
+    * @return Some(field) or None if not found by field name
+    */
   def getField(fldName: String): Option[CardField] = fields.get(fldName)
 
+  /**
+    *
+    * @return Vector of all the fields in this Collectible
+    */
   def fieldsVector: Vector[CardField] = fields.values.toVector
 
+  /**
+    * Adds field to this Collectible.
+    * After a field is added, this Collectible is marked as modified by writing
+    * timestamp, user who performed the addition and short comment into it.
+    *
+    * @param fld a field to add
+    * @param user modifier. Is written to the <code>modifiedBy</code> field<br/>
+    *
+    */
   def addField(fld: CardField)(implicit user: User): Unit =
   {
     fields += (fld.name -> fld)
@@ -30,14 +63,30 @@ case class Collectible(override val name: String,
   }
 }
 
+/**
+  * A set of things representing a Collectible type gathered together.
+  * @param coll Collectible of every thing in this Collection
+  * @param name name of this Collection
+  * @param description short description of this Collection
+  * @param user creator. Is written to <code>createdBy</code> field
+  */
 case class Collection(coll: Collectible,
                       override val name: String,
                       override val description: String)
                      (implicit user: User) extends Named with Entity
 {
   override val createdBy: User = user
+  /**
+    * mutable collection of CatalogCards
+    */
   val list: mutable.Buffer[CatalogCard] = new ArrayBuffer[CatalogCard]()
 
+  /**
+    * Adds a CatalogCard in this Collection. After a CatalogCard is added, this Collection is marked as modified by writing
+    * timestamp, user who performed the addition and short comment into it.
+    * @param c a catalog card of the thing being added. <code>c.coll</code> must be equal to <code>this.coll</code>
+    * @param user modifier. Is written to <code>modifiedBy</code> field
+    */
   def add(c: CatalogCard)(implicit user: User): Unit =
   {
     require(c.coll == coll)
@@ -47,6 +96,12 @@ case class Collection(coll: Collectible,
     modifiedOn = Some(Instant.now())
   }
 
+  /**
+    * Removes a CatalogCard from this Collection. After removal, this Collection is marked as modified (see
+    * [[ru.pangaia.collection.entity.Collection#add add]]).
+    * @param c a catalog card of the thing being removed
+    * @param user modifier. Is written to <code>modifiedBy</code> field
+    */
   def remove(c: CatalogCard)(implicit user: User): Unit =
   {
     list -= c
@@ -56,11 +111,21 @@ case class Collection(coll: Collectible,
   }
 }
 
+/**
+  * Data written to a catalog card, into an associated field.
+  * @param field an assosiated CardField of a Collectible
+  * @param user creator. Is written to <code>createdBy</code> field
+  */
 case class Record(field: CardField)(implicit user: User) extends Entity
 {
   override val createdBy: User = user
   private var valu: String = field.default.toString
 
+  /**
+    * setter for the value of this Record
+    * @param value some string conforming to the <code>field</code> semantics
+    * @param user modifier. Is written to <code>modifiedBy</code> field
+    */
   def value_=(value: String)(implicit user: User): Unit =
   {
     this.modifiedOn = Some(Instant.now)
@@ -74,9 +139,23 @@ case class Record(field: CardField)(implicit user: User) extends Entity
 
 sealed trait CardField extends Named with Entity
 {
+  /**
+    * Type of the associated record value
+    */
   type recordType
   val default: recordType
 
+  /**
+    * Writes a string to specific record. String must conform to this CardField and
+    * record must be associated with this CardField
+    *
+    * @param r record to write to.
+    * @param s raw string value
+    * @param user is passed to record value setter
+    * @return Try with possible IllegalArgumentException in case string is invalid for this CardField or
+    *         r is associated with CardField other than this
+    *
+    */
   def writeToRecord(r: Record, s: String)(implicit user: User): Try[Unit] =
   {
     Try {
@@ -89,6 +168,11 @@ sealed trait CardField extends Named with Entity
 
   def valid(s: String): Boolean
 
+  /**
+    * Reads value from record
+    * @param record record to read a value from
+    * @return value of proper type wrapped in Option
+    */
   def read(record: Record): Option[recordType]
 }
 
