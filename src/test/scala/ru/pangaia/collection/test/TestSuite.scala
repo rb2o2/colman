@@ -2,6 +2,8 @@ package ru.pangaia.collection.test
 
 import org.scalatest.FunSuite
 import ru.pangaia.collection.entity._
+import ru.pangaia.collection.model
+import ru.pangaia.collection.model._
 
 import scala.collection.mutable
 
@@ -19,7 +21,7 @@ class TestSuite extends FunSuite
         "Pages" -> IntField("Pages", "Количество страниц"),
         "Periodicity" -> ChoiceField("Periodicity", "", periodicityChoices)
       )
-      val book: Collectible = Collectible("BOOK", fields = flds)
+      val book: Collectible = model.Collectible("BOOK", fields = flds)
       val card: CatalogCard = CatalogCard(book)
       Map(
         "Title" -> "Властелин колец",
@@ -43,7 +45,7 @@ class TestSuite extends FunSuite
 
   test("proper serialization")
   {
-    import Marshallers._
+    import ru.pangaia.collection.marshalling.Marshallers._
     println("serialized card:")
     println(cardFormat.write(ACard.card).compactPrint)
     assert(1==1)

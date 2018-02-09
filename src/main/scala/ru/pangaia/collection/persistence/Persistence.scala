@@ -1,9 +1,10 @@
-package ru.pangaia.collection
+package ru.pangaia.collection.persistence
 
 /**
   * Created by oneuro on 05.10.17.
   */
-import ru.pangaia.collection.entity._
+import ru.pangaia.collection.entity.{Entity, User, RootAuthority}
+import ru.pangaia.collection.model._
 
 import scala.collection.mutable
 

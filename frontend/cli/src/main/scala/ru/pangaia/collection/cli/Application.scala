@@ -1,6 +1,7 @@
-package ru.pangaia.collection.app
+package ru.pangaia.collection.cli
 
 import ru.pangaia.collection.entity._
+import ru.pangaia.collection.model._
 
 import scala.annotation.tailrec
 import scala.collection.mutable

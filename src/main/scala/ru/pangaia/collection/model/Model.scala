@@ -1,6 +1,8 @@
-package ru.pangaia.collection.entity
+package ru.pangaia.collection.model
 
 import java.time.Instant
+
+import ru.pangaia.collection.entity._
 
 import scala.collection.generic.Growable
 import scala.collection.mutable
@@ -12,8 +14,8 @@ import scala.util.{Failure, Success, Try}
   *
   * @param name see [[ru.pangaia.collection.entity.Named Named]]
   * @param description see [[ru.pangaia.collection.entity.Named Named]]
-  * @param fields a [[scala.collection.mutable.Map mutable.Map]] of fields with field name as a key.
-  *               See [[ru.pangaia.collection.entity.CardField CardField]]
+  * @param fields a mutable.Map of fields with field name as a key.
+  *               See [[CardField CardField]]
   * @param user creator. Is written to the <code>createdBy</code> field
   */
 case class Collectible(override val name: String,
@@ -24,8 +26,9 @@ case class Collectible(override val name: String,
   override val createdBy: User = user
 
   /**
-    * Makes [[scala.collection.immutable.Vector Vector]] of [[ru.pangaia.collection.entity.Record Records]]
-    * from existing fields. See [[ru.pangaia.collection.entity.Record Record]]
+    * Makes Vector of [[Record Records]]
+    * from existing fields. See [[Record Record]]
+    *
     * @return Vector of Records
     *
     */
@@ -98,7 +101,8 @@ case class Collection(coll: Collectible,
 
   /**
     * Removes a CatalogCard from this Collection. After removal, this Collection is marked as modified (see
-    * [[ru.pangaia.collection.entity.Collection#add add]]).
+    * [[Collection#add add]]).
+    *
     * @param c a catalog card of the thing being removed
     * @param user modifier. Is written to <code>modifiedBy</code> field
     */
