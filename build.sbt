@@ -12,8 +12,6 @@ lazy val colmanCore = (project in file(".")).settings(
   )
 )
 
-
-
 lazy val colmanSwing = (project in file("frontend/swing"))
   .settings(commonSettings)
   .dependsOn(colmanCore)
@@ -25,10 +23,8 @@ lazy val colmanCli = (project in file("frontend/cli"))
 
 lazy val android = (project in file("android"))
   .settings(commonSettings)
-  .dependsOn(colmanCore)
+  .dependsOn(colmanCore).enablePlugins(AndroidApp)
 
 excludeFilter :=
-//  FileFilter.globFilter("*Marshallers*") ||
-  FileFilter.globFilter("*WebServer*") //||
-//  FileFilter.globFilter("*Persistence*")
+  FileFilter.globFilter("*WebServer*")
 
