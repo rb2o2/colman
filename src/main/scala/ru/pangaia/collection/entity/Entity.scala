@@ -3,8 +3,8 @@ package ru.pangaia.collection.entity
 import java.time.Instant
 
 /**
-  * The root of all persistent classes in the system/
-  * @author Roman Bortnikov rb2o2.dev@gmail.com
+  * The root of all persistent classes in the system
+  * @author Roman Bortnikov &lt;rb2o2.dev@gmail.com&gt;
   */
 trait Entity
 {

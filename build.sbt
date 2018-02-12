@@ -2,7 +2,8 @@ lazy val commonSettings = Seq(
   name := "colman",
   description := "Personal library/collection management server built on akka-http",
   version := "0.2-SNAPSHOT",
-  scalaVersion := "2.11.8")
+  scalaVersion := "2.11.8",
+  proguardVersion := "5.1")
 
 lazy val colmanCore = (project in file(".")).settings(
   commonSettings,
@@ -25,7 +26,7 @@ lazy val colmanCli = (project in file("frontend/cli"))
 
 lazy val android = (project in file("android"))
   .settings(commonSettings)
-  .dependsOn(colmanCore)
+  .dependsOn(colmanCore).enablePlugins(AndroidApp)
 
 excludeFilter :=
 //  FileFilter.globFilter("*Marshallers*") ||
