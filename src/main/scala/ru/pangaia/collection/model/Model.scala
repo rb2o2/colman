@@ -318,6 +318,14 @@ case class CatalogCard(coll: Collectible)(implicit user: User) extends Entity
       //TODO optimize
     }
 
+  def records_= (recs: Vector[Record])(implicit user: User): Unit =
+  {
+    vec = recs
+    modifiedBy = Some(user)
+    modifiedOn = Some(Instant.now)
+    modifiedComment = Some("records set")
+  }
+
   def getRecordValueByFieldName(fldName: String): Option[String] =
   {
     val field: Option[CardField] = coll.getField(fldName)

@@ -1,6 +1,5 @@
 scalaVersion := "2.11.8"
 
-enablePlugins(AndroidApp)
 android.useSupportVectors
 
 versionCode := Some(1)
