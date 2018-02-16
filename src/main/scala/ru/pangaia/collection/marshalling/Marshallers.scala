@@ -4,6 +4,8 @@ import ru.pangaia.collection.model._
 import spray.json.DefaultJsonProtocol._
 import spray.json._
 
+import scala.collection.mutable
+
 object Marshallers
 {
   // formats for unmarshalling and marshalling
@@ -148,7 +150,15 @@ object Marshallers
       "name" -> JsString(obj.name),
       "description" -> JsString(obj.description)))
 
-    override def read(json: JsValue): Collectible = ???
+    override def read(json: JsValue): Collectible = {
+      Collectible(
+        StringJsonFormat.read(json.asJsObject.fields("name")),
+        StringJsonFormat.read(json.asJsObject.fields("description")),
+        mutable.Map(
+          RootJsArrayFormat.read(json.asJsObject.fields("fields")).elements
+          .map(f => {val field = fieldFormat.read(f); field.name -> field}): _*)
+      )
+    }
   }
   implicit val cardFormat: RootJsonFormat[CatalogCard] = new RootJsonFormat[CatalogCard]
   {
@@ -157,6 +167,12 @@ object Marshallers
       "records" -> JsArray(obj.records.map(recordFormat.write)),
       "coll" -> collectibleFormat.write(obj.coll)))
 
-    override def read(json: JsValue): CatalogCard = ???
+    override def read(json: JsValue): CatalogCard = {
+      val c = CatalogCard(collectibleFormat.read(json.asJsObject.fields("coll")))
+      val recs = RootJsArrayFormat.read(json.asJsObject.fields("records")).elements
+        .map(recordFormat.read)
+      c.records = recs
+      c
+    }
   }
 }
