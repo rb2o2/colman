@@ -3,12 +3,12 @@ package ru.pangaia.collection.persistence
 /**
   * Created by oneuro on 05.10.17.
   */
-import ru.pangaia.collection.entity.{Entity, User, RootAuthority}
+import ru.pangaia.collection.entity.{PersistentEntity, User, RootAuthority}
 import ru.pangaia.collection.model._
 
 import scala.collection.mutable
 
-trait Repository[T <: Entity]
+trait Repository[T <: PersistentEntity]
 {
   def getById(id: Long) : Option[T]
 

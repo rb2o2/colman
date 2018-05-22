@@ -21,7 +21,7 @@ import scala.util.{Failure, Success, Try}
 case class Collectible(override val name: String,
                        override val description: String = "generic collection",
                        fields: mutable.Map[String, CardField])
-                      (implicit user: User) extends Named with Entity
+                      (implicit user: User) extends Named with PersistentEntity
 {
   override val createdBy: User = user
 
@@ -60,9 +60,9 @@ case class Collectible(override val name: String,
   def addField(fld: CardField)(implicit user: User): Unit =
   {
     fields += (fld.name -> fld)
-    modifiedBy = Some(user)
-    modifiedComment = Some(s"added field: $fld")
-    modifiedOn = Some(Instant.now())
+
+    updateWithComment(user, s"added field: $fld")
+
   }
 }
 
@@ -76,7 +76,7 @@ case class Collectible(override val name: String,
 case class Collection(coll: Collectible,
                       override val name: String,
                       override val description: String)
-                     (implicit user: User) extends Named with Entity
+                     (implicit user: User) extends Named with PersistentEntity
 {
   override val createdBy: User = user
   /**
@@ -94,9 +94,8 @@ case class Collection(coll: Collectible,
   {
     require(c.coll == coll)
     list += c
-    modifiedBy = Some(user)
-    modifiedComment = Some(s"Added card $c to collection")
-    modifiedOn = Some(Instant.now())
+
+    updateWithComment(user, s"Added card $c to collection" )
   }
 
   /**
@@ -109,9 +108,8 @@ case class Collection(coll: Collectible,
   def remove(c: CatalogCard)(implicit user: User): Unit =
   {
     list -= c
-    modifiedBy = Some(user)
-    modifiedComment = Some(s"Removed card $c from collection")
-    modifiedOn = Some(Instant.now())
+
+    updateWithComment(user, s"Removed card $c from collection")
   }
 }
 
@@ -120,7 +118,7 @@ case class Collection(coll: Collectible,
   * @param field an assosiated CardField of a Collectible
   * @param user creator. Is written to <code>createdBy</code> field
   */
-case class Record(field: CardField)(implicit user: User) extends Entity
+case class Record(field: CardField)(implicit user: User) extends PersistentEntity
 {
   override val createdBy: User = user
   private var valu: String = field.default.toString
@@ -132,16 +130,15 @@ case class Record(field: CardField)(implicit user: User) extends Entity
     */
   def value_=(value: String)(implicit user: User): Unit =
   {
-    this.modifiedOn = Some(Instant.now)
-    this.modifiedBy = Some(user)
-    this.modifiedComment = Some(s"value changed from: $valu to: $value")
     this.valu = value
+
+    updateWithComment(user, s"value changed from: $valu to: $value")
   }
 
   def value: String = valu
 }
 
-sealed trait CardField extends Named with Entity
+sealed trait CardField extends Named with PersistentEntity
 {
   /**
     * Type of the associated record value
@@ -253,7 +250,7 @@ case class ChoiceField(override val name: String,
 case class Cat(index: String,
                override val name: String,
                override val description: String)
-              (implicit user: User) extends Named with Entity
+              (implicit user: User) extends Named with PersistentEntity
 {
   override val createdBy: User = user
 
@@ -304,7 +301,7 @@ case class TaxonField(override val name: String,
   override def read(record: Record): Option[recordType] = root.findByIndex(record.value)
 }
 
-case class CatalogCard(coll: Collectible)(implicit user: User) extends Entity
+case class CatalogCard(coll: Collectible)(implicit user: User) extends PersistentEntity
 {
   override val createdBy: User = user
   private var vec = coll.initRecordsVectorFromFields
@@ -321,9 +318,8 @@ case class CatalogCard(coll: Collectible)(implicit user: User) extends Entity
   def records_= (recs: Vector[Record])(implicit user: User): Unit =
   {
     vec = recs
-    modifiedBy = Some(user)
-    modifiedOn = Some(Instant.now)
-    modifiedComment = Some("records set")
+
+    updateWithComment(user, "records set")
   }
 
   def getRecordValueByFieldName(fldName: String): Option[String] =
