@@ -36,35 +36,4 @@ object PersistentEntity
   }
 }
 
-/**
-  * Parent trait for every user type
-  */
-trait User extends PersistentEntity
-{
-  var name: String
-  val login: String
-  var password: String
-  var email: String
-}
-
-/**
-  * The superuser
-  */
-object RootAuthority extends User
-{
-  var name = "ROOT_AUTHORITY"
-  override val login = "root"
-  var password = "root"
-  var email = "rb2o2.dev@gmail.com"
-  override val createdBy: User = RootAuthority
-}
-
-/**
-  * Trait for something having a name and a short description
-  */
-trait Named
-{
-  val name: String
-  val description: String
-}
 
