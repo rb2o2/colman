@@ -27,5 +27,6 @@ lazy val android = (project in file("android"))
   .dependsOn(colmanCore).enablePlugins(AndroidApp)
 
 excludeFilter :=
-  FileFilter.globFilter("*WebServer*")
+  FileFilter.globFilter("*WebServer*") ||
+FileFilter.globFilter("*Marshaller*")
 

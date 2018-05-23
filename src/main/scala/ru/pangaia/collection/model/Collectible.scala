@@ -14,12 +14,11 @@ import scala.collection.mutable
   * @param user creator. Is written to the <code>createdBy</code> field
   */
 case class Collectible(override val name: String,
-                       override val description: String = "generic collection",
-                       fields: mutable.Map[String, CardField])
+                       override val description: String = "generic collection")
                       (implicit user: User) extends Named with PersistentEntity
 {
   override val createdBy: User = user
-
+  private var fields: mutable.Map[String, CardField] = mutable.LinkedHashMap()
   /**
     * Makes Vector of [[Record Records]]
     * from existing fields. See [[Record Record]]
@@ -27,7 +26,7 @@ case class Collectible(override val name: String,
     * @return Vector of Records
     *
     */
-  def initRecordsVectorFromFields: Vector[Record] = fields.values.map((fld: CardField) => Record(fld)).toVector
+//  def initRecordsVectorFromFields: Vector[Record] = fields.values.map((fld: CardField) => Record(fld)).toVector
 
   /**
     * Gets field of this Collectible by name wrapped in a Option
@@ -43,6 +42,7 @@ case class Collectible(override val name: String,
     */
   def fieldsVector: Vector[CardField] = fields.values.toVector
 
+  def getFields: Map[String, CardField] = fields.toMap
   /**
     * Adds field to this Collectible.
     * After a field is added, this Collectible is marked as modified by writing

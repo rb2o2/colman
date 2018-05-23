@@ -12,44 +12,19 @@ import scala.util.{Failure, Success, Try}
 case class CatalogCard(coll: Collectible)(implicit user: User) extends PersistentEntity
 {
   override val createdBy: User = user
-  private var vec = coll.initRecordsVectorFromFields
-  def records: Vector[Record] =
-    {
-      vec.filter(r => coll.fields.values.toVector.count(f => r.field == f) == 1) ++
-        //picks records for which one field exist in collectible in case a field was removed
-        coll.fields.values.toVector.filterNot((f) => vec.exists(r => r.field == f))
-          .map((f) => Record(f))
-      //creates new records for fields which has no corresponding records in case a field was created
-      //TODO optimize
-    }
 
-  def records_= (recs: Vector[Record])(implicit user: User): Unit =
-  {
-    vec = recs
+  private var ownFields: mutable.Map[String, CardField] = mutable.LinkedHashMap()
 
-    updateWithComment(user, "records set")
+  def getOwnFields: mutable.Map[String, CardField] = ownFields
+
+  def addField(f: CardField): Unit = {
+    ownFields += (f.name -> f)
   }
 
-  def getRecordValueByFieldName(fldName: String): Option[String] =
-  {
-    val field: Option[CardField] = coll.getField(fldName)
-    field match
-    {
-      case None => None
-      case Some(f) => records.find((r) => r.field == f).map((r) => r.value)
-    }
-  }
+  def getCommonFields: Map[String, CardField] = coll.getFields
 
-  def writeToFieldRecord(field: CardField)(value: String): Unit =
-  {
-    records.find(r => r.field == field).foreach ((r) =>
-    {
-      field.writeToRecord(r, value)
-    })
-  }
-
-  override def toString: String = records.map((r: Record) =>
-  {
-    r.field.name + ": " + r.value
-  }).mkString("; ")
+//  override def toString: String = records.map((r: Record) =>
+//  {
+//    r.field.name + ": " + r.value
+//  }).mkString("; ")
 }

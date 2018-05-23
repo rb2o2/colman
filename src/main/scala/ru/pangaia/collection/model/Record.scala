@@ -15,11 +15,13 @@ sealed abstract class Record(field: CardField)(implicit user: User) extends Pers
   type ValueType
   override val createdBy: User = user
   def getField: CardField = field
+  def getDefault: ValueType
 
   /**
-    * setter for the value of this Record
+    * setter for the value of this [[Record]]
+    *
     * @param value some string conforming to the <code>field</code> semantics
-    * @param user modifier. Is written to <code>modifiedBy</code> field
+    * @param user  modifier. Is written to <code>modifiedBy</code> field
     */
   def value_=(value: ValueType)(implicit user: User): Try[Unit]
 
@@ -31,15 +33,13 @@ case class StringRecord(field: StringField)(implicit user: User) extends Record(
   override type ValueType = String
   private var _value: Option[ValueType] = None
 
-  /**
-    * setter for the value of this Record
-    *
-    * @param value some string conforming to the <code>field</code> semantics
-    * @param user  modifier. Is written to <code>modifiedBy</code> field
-    */
   override def value_=(value: ValueType)(implicit user: User): Try[Unit] = Try {
+    updateWithComment(user, s"value changed from: ${_value}" + s" to: $value")
     _value = Some(value)
   }
+
+
+  override def getDefault: String = "--"
 
   override def value: Option[String] = _value
 }
@@ -49,15 +49,13 @@ case class IntRecord(field: IntField)(implicit user: User) extends Record(field)
   override type ValueType = Int
   private var _value: Option[ValueType] = None
 
-  /**
-    * setter for the value of this Record
-    *
-    * @param value some string conforming to the <code>field</code> semantics
-    * @param user  modifier. Is written to <code>modifiedBy</code> field
-    */
   override def value_=(value: ValueType)(implicit user: User): Try[Unit] = Try {
+    updateWithComment(user, s"value changed from: ${_value}" + s" to: $value")
     _value = Some(value)
   }
+
+
+  override def getDefault: Int = 0
 
   override def value: Option[ValueType] = _value
 }
@@ -68,15 +66,13 @@ case class BooleanRecord(field: BooleanField)(implicit user: User) extends Recor
 
   private var _value: Option[ValueType] = None
 
-  /**
-    * setter for the value of this Record
-    *
-    * @param value some string conforming to the <code>field</code> semantics
-    * @param user  modifier. Is written to <code>modifiedBy</code> field
-    */
   override def value_=(value: ValueType)(implicit user: User): Try[Unit] = Try {
+    updateWithComment(user, s"value changed from: ${_value}" + s" to: $value")
     _value = Some(value)
   }
+
+
+  override def getDefault: Boolean = false
 
   override def value: Option[Boolean] = _value
 }

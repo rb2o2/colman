@@ -1,5 +1,6 @@
 package ru.pangaia.collection.marshalling
 
+import ru.pangaia.collection.entity.RootAuthority
 import ru.pangaia.collection.model._
 import spray.json.DefaultJsonProtocol._
 import spray.json._
@@ -9,6 +10,7 @@ import scala.collection.mutable
 object Marshallers
 {
   // formats for unmarshalling and marshalling
+  implicit val user = RootAuthority
   implicit val categoryFormat: RootJsonFormat[Cat] = new RootJsonFormat[Cat]
   {
     override def write(obj: Cat): JsValue = JsObject(Map(
